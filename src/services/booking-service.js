@@ -46,7 +46,7 @@ const makePayment = async (data) => {
         const bookingTime = new Date(bookingDetails.createdAt);
         const currentTime = new Date();
         if(currentTime - bookingTime > 300000) {
-            await bookingRepository.update({status: CANCELLED}, data.bookingId, transaction);
+            await cancelBooking(data.bookingId);
             throw new AppError("Payment timeout", StatusCodes.GONE);
         }
 
@@ -67,9 +67,47 @@ const makePayment = async (data) => {
     }
 };
 
+
+const cancelBooking = async(bookingId) => {
+    const transaction = await db.sequelize.transaction();
+    try {
+        const bookingDetails = await bookingRepository.get(bookingId, transaction);
+
+        if(bookingDetails.status === CANCELLED) {
+            await transaction.commit();
+            return true;
+        }
+
+        await axios.patch(`${FLIGHT_SERVICE_URL}/api/v1/flights/${bookingDetails.flightId}/seats`, {
+            seats: bookingDetails.noOfSeats,
+            decrease: false
+        });
+
+        await bookingRepository.update({status: CANCELLED}, bookingId, transaction);
+        await transaction.commit();
+
+    } catch (error) {
+        await transaction.rollback();
+        throw error;
+    }
+};
+
+
+const cancelOldBookings = async() => {
+    try {
+        const time = new Date(Date.now() - 1000 * 300);
+        const response = await bookingRepository.cancelOldBooking(time);
+        return response;
+    } catch (error) {
+        console.log(error);
+    }
+};
+
 export {
     createBooking,
-    makePayment
+    makePayment,
+    cancelBooking,
+    cancelOldBookings
 };
 
 

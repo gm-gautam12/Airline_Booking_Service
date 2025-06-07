@@ -1,8 +1,14 @@
-import {createBooking as createBookingService, makePayment as makePaymentService } from "./booking-service.js";
+import {
+  createBooking as createBookingService,
+  makePayment as makePaymentService,
+  cancelBooking as cancelBookingService,
+  cancelOldBookings as cancelOldBookingsService
+} from "./booking-service.js";
 
 
-
-export {
-    createBookingService,
-    makePaymentService
+export { 
+    createBookingService, 
+    makePaymentService, 
+    cancelBookingService,
+    cancelOldBookingsService
 };
