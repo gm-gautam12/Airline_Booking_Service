@@ -1,7 +1,9 @@
 import {infoController} from "./info-controller.js";
 
-import { createBookingController } from "./booking-controller.js"; 
+import { createBookingController,makePaymentController } from "./booking-controller.js"; 
 
-export { infoController,
+export { 
+    infoController,
     createBookingController,
+    makePaymentController
  };
