@@ -1,5 +1,6 @@
 import { createBookingController, makePaymentController } from "../../controllers/index.js";
 import { Router } from "express";
+import { validatePaymentRequest } from "../../middlewares/index.js";
 
 const router = Router();
 
@@ -9,7 +10,7 @@ const router = Router();
 router.post('/', createBookingController);
 
 
-router.post('/payments', makePaymentController);
+router.post('/payments',validatePaymentRequest, makePaymentController);
 
 
 

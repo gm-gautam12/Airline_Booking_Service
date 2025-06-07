@@ -2,6 +2,7 @@ import { createBookingService, makePaymentService } from "../services/index.js";
 import { StatusCodes } from "http-status-codes";
 import { errorResponse, ApiResponse } from "../utils/common/index.js";
 
+const inMemDb = {}; // Simulating an in-memory database for idempotency keys
 
 const createBookingController = async(req,res) => {
     try {
@@ -25,6 +26,24 @@ const createBookingController = async(req,res) => {
 
 const makePaymentController = async(req,res) => {
     try {
+        const idempotencyKey = req.headers["x-idempotency-key"];
+        if(!idempotencyKey) {
+            return res.status(StatusCodes.BAD_REQUEST).json(
+                new ApiResponse(
+                    StatusCodes.BAD_REQUEST,
+                    "Idempotency key is required",
+                )
+            );
+        }
+        if(inMemDb[idempotencyKey]) {
+            return res.status(StatusCodes.BAD_REQUEST).json(
+                new ApiResponse(
+                    StatusCodes.BAD_REQUEST,
+                    "Cannot repeat the same payment request",
+                )
+            )
+        }
+        inMemDb[idempotencyKey] = idempotencyKey; // Store the idempotency key
         const response = await makePaymentService({
             bookingId: req.body.bookingId,
             totalCost: req.body.totalCost,
